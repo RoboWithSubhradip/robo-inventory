@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboSmart Inventory - Local Desktop Console</title>
+    
+    <!-- React & ReactDOM (Development Version) -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    
+    <!-- Babel compiler for in-browser JSX parsing -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Configure Babel to use classic runtime cleanly -->
+    <script>
+        Babel.registerPreset('custom-react', {
+            presets: [
+                [Babel.availablePresets['react'], { runtime: 'classic' }]
+            ]
+        });
+    </script>
+    
+    <!-- Tailwind CSS Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#030712',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Hide scrollbars for navbar tab slider */
+        .scrollbar-none::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-none {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+    <div id="root"></div>
+
+    <!-- React App Script configured to compile using our safe custom preset -->
+    <script type="text/babel" data-presets="custom-react">
+        const { useState, useEffect, useMemo } = React;
+
+        // Custom Simple Inline Icons (Lucide SVG implementations)
+        const Icons = {
+          Dashboard: () => (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+            </svg>
+          ),
+          Components: () => (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          ),
+          Products: () => (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          ),
+          Dispatches: () => (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+            </svg>
+          ),
+          History: () => (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          ),
+          Plus: () => (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          ),
+          Minus: () => (
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+            </svg>
+          ),
+          Warning: () => (
+            <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          ),
+          Robot: () => (
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+            </svg>
+          ),
+          ArrowUp: () => (
+            <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            </svg>
+          ),
+          ArrowDown: () => (
+            <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          ),
+          Photo: () => (
+            <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          )
+        };
+
+        const defaultComponents = [];
+        const defaultProducts = [];
+        const defaultPurchaseLogs = [];
+        const defaultBuildLogs = [];
+        const defaultDispatchLogs = [];
+
+        // Rich demo assets with fallback placeholder SVGs / mock images
+        const demoComponents = [
+          { sku: 'SW-001', name: 'Lithium Polymer Battery (24V 10Ah)', category: 'Power', stock: 120, unitPrice: 7500.00, minStock: 20, image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=300&q=80' },
+          { sku: 'SW-002', name: 'BLDC Hub Motor (250W)', category: 'Actuators', stock: 45, unitPrice: 9800.00, minStock: 10, image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80' },
+          { sku: 'SW-003', name: 'Nvidia Jetson Orin Nano (8GB)', category: 'Controllers', stock: 15, unitPrice: 42000.00, minStock: 5, image: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=300&q=80' },
+          { sku: 'SW-004', name: 'RPLIDAR A2M8 Laser Range Scanner', category: 'Sensors', stock: 8, unitPrice: 24000.00, minStock: 4, image: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=300&q=80' },
+          { sku: 'SW-005', name: 'Anodized Aluminum Chassis Profiles (1m)', category: 'Mechanics', stock: 200, unitPrice: 1200.00, minStock: 50, image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=300&q=80' },
+          { sku: 'SW-006', name: 'IMU 9-DOF Sensor Module', category: 'Sensors', stock: 35, unitPrice: 1050.00, minStock: 10, image: '' }
+        ];
+
+        const demoProducts = [
+          {
+            id: 'PROD-01',
+            name: 'Rover-X1 Autonomous Explorer',
+            description: 'Outdoor autonomous wheel-based research robot with LiDAR mapping capabilities.',
+            stock: 5,
+            image: 'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?auto=format&fit=crop&w=600&q=80',
+            bom: [
+              { sku: 'SW-001', qty: 1 },
+              { sku: 'SW-002', qty: 4 },
+              { sku: 'SW-003', qty: 1 },
+              { sku: 'SW-004', qty: 1 },
+              { sku: 'SW-005', qty: 6 }
+            ]
+          },
+          {
+            id: 'PROD-02',
+            name: 'HexaArm Modular Manipulator',
+            description: '6-Axis lightweight high-precision robotic arm for desktop assembling automation.',
+            stock: 2,
+            image: 'https://images.unsplash.com/photo-1563770660941-20978e870e26?auto=format&fit=crop&w=600&q=80',
+            bom: [
+              { sku: 'SW-002', qty: 6 },
+              { sku: 'SW-003', qty: 1 },
+              { sku: 'SW-005', qty: 4 },
+              { sku: 'SW-006', qty: 1 }
+            ]
+          }
+        ];
+
+        // Flat structural history matching the requested specifications
+        const demoPurchaseLogs = [];
+        const demoBuildLogs = [];
+        const demoDispatchLogs = [];
+
+        function App() {
+          const [components, setComponents] = useState(() => {
+            const saved = localStorage.getItem('robo_components');
+            return saved ? JSON.parse(saved) : defaultComponents;
+          });
+
+          const [products, setProducts] = useState(() => {
+            const saved = localStorage.getItem('robo_products');
+            return saved ? JSON.parse(saved) : defaultProducts;
+          });
+
+          const [purchases, setPurchases] = useState(() => {
+            const saved = localStorage.getItem('robo_purchases');
+            return saved ? JSON.parse(saved) : defaultPurchaseLogs;
+          });
+
+          const [buildLogs, setBuildLogs] = useState(() => {
+            const saved = localStorage.getItem('robo_builds');
+            return saved ? JSON.parse(saved) : defaultBuildLogs;
+          });
+
+          const [dispatchLogs, setDispatchLogs] = useState(() => {
+            const saved = localStorage.getItem('robo_dispatches');
+            return saved ? JSON.parse(saved) : defaultDispatchLogs;
+          });
+
+          // Stock Issue / Component consumption state with Issue Serial Number
+          const [issueLogs, setIssueLogs] = useState(() => {
+            const saved = localStorage.getItem('robo_issues');
+            return saved ? JSON.parse(saved) : [];
+          });
+
+          // Dynamic state for active layout tabs
+          const [activeTab, setActiveTab] = useState('dashboard');
+          const [searchTerm, setSearchTerm] = useState('');
+          const [componentCategoryFilter, setComponentCategoryFilter] = useState('All');
+          const [componentsViewMode, setComponentsViewMode] = useState('grid');
+          const [errorMessage, setErrorMessage] = useState('');
+          const [successMessage, setSuccessMessage] = useState('');
+
+          // Modal state
+          const [modalType, setModalType] = useState(null); 
+          const [activeInvoice, setActiveInvoice] = useState(null); // Active printable invoice model object
+
+          // Auto-save mechanisms
+          useEffect(() => {
+            localStorage.setItem('robo_components', JSON.stringify(components));
+          }, [components]);
+
+          useEffect(() => {
+            localStorage.setItem('robo_products', JSON.stringify(products));
+          }, [products]);
+
+          useEffect(() => {
+            localStorage.setItem('robo_purchases', JSON.stringify(purchases));
+          }, [purchases]);
+
+          useEffect(() => {
+            localStorage.setItem('robo_builds', JSON.stringify(buildLogs));
+          }, [buildLogs]);
+
+          useEffect(() => {
+            localStorage.setItem('robo_dispatches', JSON.stringify(dispatchLogs));
+          }, [dispatchLogs]);
+
+          useEffect(() => {
+            localStorage.setItem('robo_issues', JSON.stringify(issueLogs));
+          }, [issueLogs]);
+
+          const triggerMessage = (type, message) => {
+            if (type === 'success') {
+              setSuccessMessage(message);
+              setTimeout(() => setSuccessMessage(''), 4000);
+            } else {
+              setErrorMessage(message);
+              setTimeout(() => setErrorMessage(''), 5000);
+            }
+          };
+
+          const summaryMetrics = useMemo(() => {
+            const totalPartsStock = components.reduce((acc, curr) => acc + curr.stock, 0);
+            const totalInventoryValue = components.reduce((acc, curr) => acc + (curr.stock * curr.unitPrice), 0);
+            const lowStockAlertsCount = components.filter(c => c.stock <= c.minStock).length;
+            const totalFinishedRobots = products.reduce((acc, curr) => acc + curr.stock, 0);
+            const totalDispatchedRobots = dispatchLogs.reduce((acc, curr) => acc + curr.items.reduce((sum, item) => sum + item.qty, 0), 0);
+
+            return {
+              totalPartsStock,
+              totalInventoryValue,
+              lowStockAlertsCount,
+              totalFinishedRobots,
+              totalDispatchedRobots
+            };
+          }, [components, products, dispatchLogs]);
+
+          // FORM STATE INITIALIZATION
+
+          // 1. Add/Register New Component SKU
+          const [newComponentForm, setNewComponentForm] = useState({
+            sku: '', name: '', category: 'Sensors', initialStock: 0, unitPrice: 0.00, minStock: 5, image: ''
+          });
+
+          // 2. Batch Purchase Stock-In Form (Dynamic multi-item table)
+          const [batchStockInForm, setBatchStockInForm] = useState({
+            vendorName: '',
+            vendorAddress: '',
+            purchaseDate: new Date().toISOString().split('T')[0],
+            items: [{ sku: '', qty: 1, unitPrice: 0 }]
+          });
+
+          // 3. Dynamic Material Issue Stock-Out Form (Multi-item form with Serial Number)
+          const generateIssueSerial = () => 'ISN-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 900);
+          
+          const [issueForm, setIssueForm] = useState({
+            serialNo: generateIssueSerial(),
+            personName: '',
+            purpose: '',
+            date: new Date().toISOString().split('T')[0],
+            items: [{ sku: '', qty: 1 }]
+          });
+
+          // 4. Create New Robotics Schema (BOM configuration helper)
+          const [newProductForm, setNewProductForm] = useState({
+            id: '', name: '', description: '', image: '', bomList: []
+          });
+          const [bomRowInput, setBomRowInput] = useState({ sku: '', qty: 1 });
+
+          // 5. Robotics Production Batch Log Form (Assembles Finished Goods)
+          const [productionBatchForm, setProductionBatchForm] = useState({
+            productId: '',
+            qty: 1,
+            date: new Date().toISOString().split('T')[0],
+            notes: ''
+          });
+
+          // 6. Customer Dispatch Order Form (Dynamic completed robots shipment & Automatic Bill generation)
+          const [dispatchForm, setDispatchForm] = useState({
+            customerName: '',
+            personName: '',
+            date: new Date().toISOString().split('T')[0],
+            notes: '',
+            items: [{ productId: '', qty: 1 }]
+          });
+
+          // --- OPERATIONS CONTROLLERS ---
+
+          // FileReader base64 converter
+          const handleFileRead = (e, callback) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 800 * 1024) { 
+              triggerMessage('error', 'Image is too large! Please upload under 800 KB for offline browser safety.');
+              return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => { callback(reader.result); };
+            reader.readAsDataURL(file);
+          };
+
+          // Register individual raw SKU Component
+          const handleRegisterComponent = (e) => {
+            e.preventDefault();
+            const formattedSku = newComponentForm.sku.trim().toUpperCase();
+            if (!formattedSku || !newComponentForm.name.trim()) return triggerMessage('error', 'Please fill in SKU and Name.');
+            if (components.some(c => c.sku === formattedSku)) return triggerMessage('error', `SKU ${formattedSku} already exists.`);
+
+            const created = {
+              sku: formattedSku,
+              name: newComponentForm.name.trim(),
+              category: newComponentForm.category,
+              stock: Number(newComponentForm.initialStock),
+              unitPrice: Number(newComponentForm.unitPrice),
+              minStock: Number(newComponentForm.minStock),
+              image: newComponentForm.image
+            };
+
+            setComponents(prev => [...prev, created]);
+
+            // Save initial stock transaction if positive
+            if (Number(newComponentForm.initialStock) > 0) {
+              setPurchases(prev => [{
+                id: 'BATCH-SETUP-' + Date.now(),
+                vendorName: 'System Setup',
+                vendorAddress: 'Warehouse initial deposit',
+                date: new Date().toISOString().split('T')[0],
+                items: [{ sku: formattedSku, qty: Number(newComponentForm.initialStock), unitPrice: Number(newComponentForm.unitPrice) }]
+              }, ...prev]);
+            }
+
+            triggerMessage('success', `Component SKU ${formattedSku} added to registry.`);
+            setModalType(null);
+            setNewComponentForm({ sku: '', name: '', category: 'Sensors', initialStock: 0, unitPrice: 0.00, minStock: 5, image: '' });
+          };
+
+          // Dynamic row controls for batch stock-in
+          const addBatchStockInRow = () => {
+            setBatchStockInForm(prev => ({
+              ...prev,
+              items: [...prev.items, { sku: '', qty: 1, unitPrice: 0 }]
+            }));
+          };
+
+          const removeBatchStockInRow = (index) => {
+            if (batchStockInForm.items.length <= 1) return;
+            setBatchStockInForm(prev => ({
+              ...prev,
+              items: prev.items.filter((_, i) => i !== index)
+            }));
+          };
+
+          const handleBatchStockInRowChange = (index, field, value) => {
+            const updated = [...batchStockInForm.items];
+            updated[index][field] = value;
+            
+            // Auto fill current price from registry if SKU changed
+            if (field === 'sku') {
+              const comp = components.find(c => c.sku === value);
+              if (comp) {
+                updated[index]['unitPrice'] = comp.unitPrice;
+              }
+            }
+            setBatchStockInForm(prev => ({ ...prev, items: updated }));
+          };
+
+          // Commit batch Stock-In purchase
+          const handleSubmitBatchStockIn = (e) => {
+            e.preventDefault();
+            const { vendorName, vendorAddress, purchaseDate, items } = batchStockInForm;
+            if (!vendorName.trim()) return triggerMessage('error', 'Please provide a valid Vendor name.');
+
+            // Validate all rows
+            for (let item of items) {
+              if (!item.sku) return triggerMessage('error', 'Please choose a component SKU for all purchase rows.');
+              if (item.qty <= 0) return triggerMessage('error', 'Purchase quantity must be positive.');
+            }
+
+            // Update components stocks
+            setComponents(prev => prev.map(comp => {
+              const matches = items.filter(i => i.sku === comp.sku);
+              if (matches.length > 0) {
+                const totalAdded = matches.reduce((sum, item) => sum + Number(item.qty), 0);
+                // Set unit price to latest buying price if greater than 0
+                const latestPrice = matches[matches.length - 1].unitPrice;
+                return {
+                  ...comp,
+                  stock: comp.stock + totalAdded,
+                  unitPrice: latestPrice > 0 ? Number(latestPrice) : comp.unitPrice
+                };
+              }
+              return comp;
+            }));
+
+            // Log purchase transaction batch
+            const newTransaction = {
+              id: 'BATCH-IN-' + Date.now(),
+              vendorName: vendorName.trim(),
+              vendorAddress: vendorAddress.trim() || 'Not specified',
+              date: purchaseDate,
+              items: items.map(i => ({ sku: i.sku, qty: Number(i.qty), unitPrice: Number(i.unitPrice) }))
+            };
+
+            setPurchases(prev => [newTransaction, ...prev]);
+            triggerMessage('success', `Batch Stock-In processed successfully for vendor "${vendorName}". Stocks incremented.`);
+            
+            // Clear form
+            setBatchStockInForm({
+              vendorName: '',
+              vendorAddress: '',
+              purchaseDate: new Date().toISOString().split('T')[0],
+              items: [{ sku: '', qty: 1, unitPrice: 0 }]
+            });
+            setActiveTab('dashboard');
+          };
+
+          // Dynamic row controls for stock-out (Component Issue Form)
+          const addIssueRow = () => {
+            setIssueForm(prev => ({
+              ...prev,
+              items: [...prev.items, { sku: '', qty: 1 }]
+            }));
+          };
+
+          const removeIssueRow = (index) => {
+            if (issueForm.items.length <= 1) return;
+            setIssueForm(prev => ({
+              ...prev,
+              items: prev.items.filter((_, i) => i !== index)
+            }));
+          };
+
+          const handleIssueRowChange = (index, field, value) => {
+            const updated = [...issueForm.items];
+            updated[index][field] = value;
+            setIssueForm(prev => ({ ...prev, items: updated }));
+          };
+
+          // Commit dynamic Material Issue Stock-out form
+          const handleSubmitIssue = (e) => {
+            e.preventDefault();
+            const { serialNo, personName, purpose, date, items } = issueForm;
+            if (!personName.trim() || !purpose.trim()) return triggerMessage('error', 'Person Name and Purpose are required.');
+
+            // Validate stock availability and quantities
+            for (let item of items) {
+              if (!item.sku) return triggerMessage('error', 'Select a component SKU for all stock-out rows.');
+              if (item.qty <= 0) return triggerMessage('error', 'Deduction quantity must be positive.');
+              
+              const compObj = components.find(c => c.sku === item.sku);
+              if (!compObj) return triggerMessage('error', `SKU ${item.sku} does not exist.`);
+              if (compObj.stock < item.qty) {
+                return triggerMessage('error', `Insufficient stock for SKU ${item.sku}. On hand: ${compObj.stock}, requested: ${item.qty}`);
+              }
+            }
+
+            // Deduct component stocks
+            setComponents(prev => prev.map(comp => {
+              const matchedIssue = items.find(i => i.sku === comp.sku);
+              if (matchedIssue) {
+                return {
+                  ...comp,
+                  stock: comp.stock - Number(matchedIssue.qty)
+                };
+              }
+              return comp;
+            }));
+
+            // Save unified issue log with serial number
+            const newIssueLog = {
+              serialNo: serialNo.trim(),
+              personName: personName.trim(),
+              purpose: purpose.trim(),
+              date: date,
+              items: items.map(i => ({ sku: i.sku, qty: Number(i.qty) }))
+            };
+
+            setIssueLogs(prev => [newIssueLog, ...prev]);
+            triggerMessage('success', `Components issued successfully under Serial No: ${serialNo}. Stock deducted.`);
+
+            // Reset form
+            setIssueForm({
+              serialNo: generateIssueSerial(),
+              personName: '',
+              purpose: '',
+              date: new Date().toISOString().split('T')[0],
+              items: [{ sku: '', qty: 1 }]
+            });
+            setActiveTab('dashboard');
+          };
+
+          // Create Product BOM Row control
+          const addBomRowItem = () => {
+            if (!bomRowInput.sku) return triggerMessage('error', 'Please choose a component first.');
+            if (bomRowInput.qty <= 0) return triggerMessage('error', 'Required quantity must be positive.');
+            if (newProductForm.bomList.some(item => item.sku === bomRowInput.sku)) {
+              return triggerMessage('error', 'This component is already configured in this Bill of Materials.');
+            }
+            setNewProductForm(prev => ({
+              ...prev,
+              bomList: [...prev.bomList, { sku: bomRowInput.sku, qty: Number(bomRowInput.qty) }]
+            }));
+            setBomRowInput({ sku: '', qty: 1 });
+          };
+
+          const removeBomRowItem = (sku) => {
+            setNewProductForm(prev => ({
+              ...prev,
+              bomList: prev.bomList.filter(item => item.sku !== sku)
+            }));
+          };
+
+          // Register Robotics Schema 
+          const handleRegisterProduct = (e) => {
+            e.preventDefault();
+            const formattedId = newProductForm.id.trim().toUpperCase();
+            if (!formattedId || !newProductForm.name.trim()) return triggerMessage('error', 'Product Model ID and Name are required.');
+            if (newProductForm.bomList.length === 0) return triggerMessage('error', 'At least one component is required in the Bill of Materials (BOM).');
+            if (products.some(p => p.id === formattedId)) return triggerMessage('error', `Model ID ${formattedId} already exists.`);
+
+            const createdProduct = {
+              id: formattedId,
+              name: newProductForm.name.trim(),
+              description: newProductForm.description.trim(),
+              stock: 0,
+              bom: newProductForm.bomList,
+              image: newProductForm.image
+            };
+
+            setProducts(prev => [...prev, createdProduct]);
+            triggerMessage('success', `Robotics model ${createdProduct.name} defined successfully.`);
+            setModalType(null);
+            setNewProductForm({ id: '', name: '', description: '', image: '', bomList: [] });
+          };
+
+          // Pre-assemble calculation helper for active build production check
+          const activeProductionVerification = useMemo(() => {
+            if (!productionBatchForm.productId) return { fits: false, details: [] };
+            const selectedProd = products.find(p => p.id === productionBatchForm.productId);
+            if (!selectedProd) return { fits: false, details: [] };
+
+            let fits = true;
+            const details = selectedProd.bom.map(bomItem => {
+              const comp = components.find(c => c.sku === bomItem.sku);
+              const totalRequired = bomItem.qty * productionBatchForm.qty;
+              const currentStock = comp ? comp.stock : 0;
+              const isSufficient = currentStock >= totalRequired;
+              if (!isSufficient) fits = false;
+              return { sku: bomItem.sku, name: comp ? comp.name : 'Unknown SKU', totalRequired, currentStock, isSufficient };
+            });
+
+            return { fits, details };
+          }, [productionBatchForm.productId, productionBatchForm.qty, components, products]);
+
+          // Execute Production Build Assembly (BOM stock deduction)
+          const handleSubmitProductionBatch = (e) => {
+            e.preventDefault();
+            const { productId, qty, date, notes } = productionBatchForm;
+            if (!productId) return triggerMessage('error', 'Please select a Robotics Model to build.');
+            if (qty <= 0) return triggerMessage('error', 'Production quantity must be positive.');
+
+            const robotModel = products.find(p => p.id === productId);
+            if (!robotModel) return;
+
+            if (!activeProductionVerification.fits) {
+              return triggerMessage('error', 'Cannot construct robotics batch: Insufficient component materials in inventory.');
+            }
+
+            // Deduct raw material stocks
+            setComponents(prev => prev.map(comp => {
+              const matchedRequirement = robotModel.bom.find(b => b.sku === comp.sku);
+              if (matchedRequirement) {
+                const totalDeducted = matchedRequirement.qty * qty;
+                return {
+                  ...comp,
+                  stock: comp.stock - totalDeducted
+                };
+              }
+              return comp;
+            }));
+
+            // Increment finished good stock
+            setProducts(prev => prev.map(p => {
+              if (p.id === productId) {
+                return { ...p, stock: p.stock + Number(qty) };
+              }
+              return p;
+            }));
+
+            // Log Build history batch
+            const newBuild = {
+              id: 'BUILD-' + Date.now(),
+              productId,
+              productName: robotModel.name,
+              qty: Number(qty),
+              date,
+              notes: notes.trim() || 'Standard assembly line run'
+            };
+
+            setBuildLogs(prev => [newBuild, ...prev]);
+            triggerMessage('success', `Production batch registered: Constructed +${qty} units of ${robotModel.name}. BOM parts deducted.`);
+            
+            // Clear Form
+            setProductionBatchForm({
+              productId: '',
+              qty: 1,
+              date: new Date().toISOString().split('T')[0],
+              notes: ''
+            });
+            setActiveTab('products');
+          };
+
+          // Dynamic row controls for Client Dispatch Order Form
+          const addDispatchRow = () => {
+            setDispatchForm(prev => ({
+              ...prev,
+              items: [...prev.items, { productId: '', qty: 1 }]
+            }));
+          };
+
+          const removeDispatchRow = (index) => {
+            if (dispatchForm.items.length <= 1) return;
+            setDispatchForm(prev => ({
+              ...prev,
+              items: prev.items.filter((_, i) => i !== index)
+            }));
+          };
+
+          const handleDispatchRowChange = (index, field, value) => {
+            const updated = [...dispatchForm.items];
+            updated[index][field] = value;
+            setDispatchForm(prev => ({ ...prev, items: updated }));
+          };
+
+          // Commits finished robotics products shipment & Generates Automatic Bill
+          const handleSubmitDispatch = (e) => {
+            e.preventDefault();
+            const { customerName, personName, date, notes, items } = dispatchForm;
+            if (!customerName.trim() || !personName.trim()) return triggerMessage('error', 'Client (Customer) Name and Authorized Person details are required.');
+
+            // Verify completed robots stock availability
+            for (let item of items) {
+              if (!item.productId) return triggerMessage('error', 'Select a finished robot model for all dispatch rows.');
+              if (item.qty <= 0) return triggerMessage('error', 'Shipment quantity must be positive.');
+
+              const targetRobot = products.find(p => p.id === item.productId);
+              if (!targetRobot) return triggerMessage('error', 'Robot Model does not exist.');
+              if (targetRobot.stock < item.qty) {
+                return triggerMessage('error', `Insufficient finished goods stock for ${targetRobot.name}. Available: ${targetRobot.stock}, requested dispatch: ${item.qty}`);
+              }
+            }
+
+            // Deduct finished robot stocks
+            setProducts(prev => prev.map(p => {
+              const matchedDispatch = items.find(i => i.productId === p.id);
+              if (matchedDispatch) {
+                return {
+                  ...p,
+                  stock: p.stock - Number(matchedDispatch.qty)
+                };
+              }
+              return p;
+            }));
+
+            // Assemble billing prices using cumulative pricing based on components inside the robot's BOM + nominal value markup
+            const dispatchItemsData = items.map(item => {
+              const robotModel = products.find(p => p.id === item.productId);
+              
+              // Calculate custom computed price based on its raw components BOM pricing plus 25% integration engineering fee
+              const rawCost = robotModel.bom.reduce((sum, bomItem) => {
+                const matchedComp = components.find(c => c.sku === bomItem.sku);
+                const price = matchedComp ? matchedComp.unitPrice : 0;
+                return sum + (price * bomItem.qty);
+              }, 0);
+              const calculatedPriceVal = rawCost > 0 ? Math.round(rawCost * 1.25) : 150000; // fallback default price if empty BOM
+
+              return {
+                productId: item.productId,
+                productName: robotModel.name,
+                qty: Number(item.qty),
+                unitPrice: calculatedPriceVal,
+                subtotal: calculatedPriceVal * Number(item.qty)
+              };
+            });
+
+            const totalSum = dispatchItemsData.reduce((sum, item) => sum + item.subtotal, 0);
+            const invoiceNo = 'INV-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 900);
+
+            const newDispatchLog = {
+              id: 'BATCH-DISPATCH-' + Date.now(),
+              customerName: customerName.trim(),
+              contactPerson: personName.trim(),
+              date,
+              notes: notes.trim() || 'Dispatched for client deployment',
+              items: dispatchItemsData,
+              totalAmount: totalSum,
+              invoiceNo
+            };
+
+            setDispatchLogs(prev => [newDispatchLog, ...prev]);
+            
+            // Pop up invoice viewer automatically
+            setActiveInvoice(newDispatchLog);
+
+            // Clear Form
+            setDispatchForm({
+              customerName: '',
+              personName: '',
+              date: new Date().toISOString().split('T')[0],
+              notes: '',
+              items: [{ productId: '', qty: 1 }]
+            });
+            triggerMessage('success', 'Robotics dispatch completed successfully! Invoice generated.');
+          };
+
+          const handlePrintInvoice = () => {
+            window.print();
+          };
+
+          const getCategoryFallbackImage = (category) => {
+            switch(category) {
+              case 'Power': 
+                return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%2338bdf8" stroke-width="1.5"><rect x="2" y="7" width="20" height="12" rx="2"/><line x1="6" y1="7" x2="6" y2="4"/><line x1="18" y1="7" x2="18" y2="4"/><path d="M12 11l-2 3h4l-2 3"/></svg>';
+              case 'Actuators':
+                return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23fb7185" stroke-width="1.5"><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>';
+              case 'Controllers':
+                return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23a78bfa" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9V9zM9 1v2M15 1v2M9 21v2M15 21v2M1 9h2M1 15h2M21 9h2M21 15h2"/></svg>';
+              case 'Sensors':
+                return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23f43f5e" stroke-width="1.5"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/><line x1="12" y1="3" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="21"/></svg>';
+              case 'Mechanics':
+                return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23f59e0b" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94z"/></svg>';
+              default:
+                return 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%2364748b" stroke-width="1.5"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>';
+            }
+          };
+
+          const resetToDemoData = () => {
+            if (confirm("Reset all data back to demo records? Local custom changes will be deleted.")) {
+              setComponents(demoComponents);
+              setProducts(demoProducts);
+              setPurchases(demoPurchaseLogs);
+              setBuildLogs(demoBuildLogs);
+              setDispatchLogs(demoDispatchLogs);
+              setIssueLogs([]);
+              triggerMessage('success', 'Reset successful.');
+            }
+          };
+
+          const handleExportData = () => {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ components, products, purchases, buildLogs, dispatchLogs, issueLogs }, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Robotics_Inventory_Backup_${new Date().toISOString().split('T')[0]}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+          };
+
+          const clearAllData = () => {
+            if (confirm("Are you sure you want to permanently clear all robotics inventory, product, and tracking data? This cannot be undone.")) {
+              setComponents([]);
+              setProducts([]);
+              setPurchases([]);
+              setBuildLogs([]);
+              setDispatchLogs([]);
+              setIssueLogs([]);
+              triggerMessage('success', 'Workspace cleared successfully.');
+            }
+          };
+
+          const filteredComponents = useMemo(() => {
+            return components.filter(c => {
+              const matchSearch = c.sku.toLowerCase().includes(searchTerm.toLowerCase()) || c.name.toLowerCase().includes(searchTerm.toLowerCase());
+              const matchCat = componentCategoryFilter === 'All' || c.category === componentCategoryFilter;
+              return matchSearch && matchCat;
+            });
+          }, [components, searchTerm, componentCategoryFilter]);
+
+          return (
+            <div className="flex flex-col min-h-screen">
+              
+              {/* HEADER (With Printable Safeguard class) */}
+              <header className="no-print border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="bg-gradient-to-br from-cyan-400 to-blue-600 p-2.5 rounded-xl text-slate-950 shadow-md">
+                    <Icons.Robot />
+                  </div>
+                  <div>
+                    <h1 className="font-bold text-lg tracking-wider text-white">ROBOSMART INVENTORY</h1>
+                    <p className="text-xs text-cyan-400 font-semibold uppercase tracking-widest">Enterprise Command Console</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button onClick={handleExportData} className="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">Backup Database JSON</button>
+                  <button onClick={resetToDemoData} className="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-cyan-950/45 hover:bg-cyan-900/50 text-cyan-300 border border-cyan-900/40 transition">Load Demo Data</button>
+                  <button onClick={clearAllData} className="px-3.5 py-1.5 rounded-lg text-sm font-medium bg-rose-950/40 hover:bg-rose-900/50 text-rose-300 border border-rose-900/40 transition">Clear All Data</button>
+                </div>
+              </header>
+
+              {/* Feedback banners */}
+              {successMessage && <div className="fixed top-20 right-6 z-50 bg-emerald-950/90 border border-emerald-500 text-emerald-200 px-5 py-3 rounded-lg shadow-xl font-semibold no-print">{successMessage}</div>}
+              {errorMessage && <div className="fixed top-20 right-6 z-50 bg-rose-950/90 border border-rose-500 text-rose-200 px-5 py-3 rounded-lg shadow-xl font-semibold no-print">{errorMessage}</div>}
+
+              {/* Navigation Tab links */}
+              <nav className="no-print bg-slate-900 border-b border-slate-800 px-6 py-1 flex gap-1 overflow-x-auto whitespace-nowrap scrollbar-none">
+                <button onClick={() => setActiveTab('dashboard')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'dashboard' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Dashboard</button>
+                <button onClick={() => setActiveTab('components')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'components' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Components & SKU Registry</button>
+                <button onClick={() => setActiveTab('batchIn')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'batchIn' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Batch Stock-In (Purchasing)</button>
+                <button onClick={() => setActiveTab('issueOut')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'issueOut' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Material Issue Form (Stock-Out)</button>
+                <button onClick={() => setActiveTab('productionAssembly')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'productionAssembly' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Manufacturing (BOM & Production)</button>
+                <button onClick={() => setActiveTab('products')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'products' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Finished Goods Warehouse</button>
+                <button onClick={() => setActiveTab('dispatches')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'dispatches' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Dispatches & Billing</button>
+                <button onClick={() => setActiveTab('history')} className={`px-4 py-3.5 border-b-2 text-sm font-medium ${activeTab === 'history' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}>Audit Logs</button>
+              </nav>
+
+              <main className="no-print flex-1 p-6 max-w-7xl mx-auto w-full">
+                
+                {/* A. DASHBOARD VIEW TAB */}
+                {activeTab === 'dashboard' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+                        <p className="text-xs font-semibold text-slate-400 uppercase">Materials Value</p>
+                        <p className="text-2xl font-bold">₹{summaryMetrics.totalInventoryValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+                        <p className="text-xs font-semibold text-slate-400 uppercase">Items On Hand</p>
+                        <p className="text-2xl font-bold">{summaryMetrics.totalPartsStock}</p>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+                        <p className="text-xs font-semibold text-slate-400 uppercase">Robots Stock</p>
+                        <p className="text-2xl font-bold text-emerald-400">{summaryMetrics.totalFinishedRobots}</p>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+                        <p className="text-xs font-semibold text-slate-400 uppercase">Dispatched Units</p>
+                        <p className="text-2xl font-bold text-sky-400">{summaryMetrics.totalDispatchedRobots}</p>
+                      </div>
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition">
+                        <p className="text-xs font-semibold text-slate-400 uppercase">Low Stock SKUs</p>
+                        <p className={`text-2xl font-bold ${summaryMetrics.lowStockAlertsCount > 0 ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`}>{summaryMetrics.lowStockAlertsCount}</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      
+                      {/* Critical Stock alerts */}
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                        <h3 className="font-bold border-b border-slate-800 pb-2 mb-4 text-rose-400 flex items-center gap-2">
+                          <Icons.Warning /> Low Stock Alerts
+                        </h3>
+                        <div className="space-y-2.5 max-h-[280px] overflow-y-auto">
+                          {components.filter(c => c.stock <= c.minStock).map(c => (
+                            <div key={c.sku} className="p-3 bg-slate-950 rounded border border-rose-950/40 flex justify-between text-xs items-center">
+                              <div className="flex items-center gap-3">
+                                <img src={c.image || getCategoryFallbackImage(c.category)} className="w-10 h-10 rounded bg-slate-900 border border-slate-800 object-cover" />
+                                <div>
+                                  <span className="font-bold text-rose-400 font-mono">{c.sku}</span>
+                                  <p className="font-semibold text-slate-300 truncate max-w-[130px]">{c.name}</p>
+                                </div>
+                              </div>
+                              <span className="text-right text-rose-400 font-bold font-mono">Stock: {c.stock} / Min: {c.minStock}</span>
+                            </div>
+                          ))}
+                          {components.filter(c => c.stock <= c.minStock).length === 0 && (
+                            <p className="text-center text-slate-500 py-12 text-xs italic">All raw material components are sufficiently stocked.</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Shortcut Access Panel */}
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                        <h3 className="font-bold border-b border-slate-800 pb-2 mb-4">Command Console</h3>
+                        <div className="grid grid-cols-1 gap-2.5">
+                          <button onClick={() => setActiveTab('batchIn')} className="w-full text-left p-3.5 bg-slate-950 border border-slate-800 hover:bg-slate-850 hover:border-slate-700 transition rounded-xl flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-bold text-cyan-400">Vendor Purchase (Batch In)</p>
+                              <p className="text-xs text-slate-400 mt-0.5">Add bulk stocks from verified suppliers</p>
+                            </div>
+                            <span className="text-slate-600">&rarr;</span>
+                          </button>
+                          <button onClick={() => setActiveTab('issueOut')} className="w-full text-left p-3.5 bg-slate-950 border border-slate-800 hover:bg-slate-850 hover:border-slate-700 transition rounded-xl flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-bold text-rose-400">Issue Components (Stock-Out)</p>
+                              <p className="text-xs text-slate-400 mt-0.5">Deduct materials under tracking Serial No.</p>
+                            </div>
+                            <span className="text-slate-600">&rarr;</span>
+                          </button>
+                          <button onClick={() => setActiveTab('productionAssembly')} className="w-full text-left p-3.5 bg-slate-950 border border-slate-800 hover:bg-slate-850 hover:border-slate-700 transition rounded-xl flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-bold text-emerald-400">Assemble Robot (BOM Run)</p>
+                              <p className="text-xs text-slate-400 mt-0.5">Deduct components to construct finished models</p>
+                            </div>
+                            <span className="text-slate-600">&rarr;</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Completed Robotics Stock state */}
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                        <h3 className="font-bold border-b border-slate-800 pb-2 mb-4 flex items-center gap-2">
+                          <Icons.Robot /> Completed Goods stock
+                        </h3>
+                        <div className="space-y-2 max-h-[280px] overflow-y-auto">
+                          {products.map(p => (
+                            <div key={p.id} className="p-3 bg-slate-950 rounded flex justify-between text-xs items-center border border-slate-850">
+                              <div className="flex items-center gap-3">
+                                <img src={p.image || getCategoryFallbackImage('default')} className="w-10 h-10 rounded bg-slate-900 border border-slate-800 object-cover" />
+                                <div><span className="font-mono text-emerald-400 font-bold">{p.id}</span><p className="font-bold text-slate-200 truncate max-w-[130px]">{p.name}</p></div>
+                              </div>
+                              <span className="bg-slate-900 px-3 py-1 rounded text-slate-300 font-bold">{p.stock} built</span>
+                            </div>
+                          ))}
+                          {products.length === 0 && <p className="text-center text-slate-500 py-12 text-xs italic">No robot templates configured.</p>}
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+
+                {/* B. COMPONENTS TAB & REGISTRY */}
+                {activeTab === 'components' && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-3 bg-slate-900 p-4 border border-slate-800 rounded-xl justify-between items-center">
+                      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <input type="text" placeholder="Search SKU or Name..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm focus:ring-1 focus:ring-cyan-500 focus:outline-none" />
+                        <select value={componentCategoryFilter} onChange={e => setComponentCategoryFilter(e.target.value)} className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-sm focus:outline-none">
+                          <option value="All">All Categories</option>
+                          <option value="Power">Power</option><option value="Actuators">Actuators</option><option value="Controllers">Controllers</option><option value="Sensors">Sensors</option><option value="Mechanics">Mechanics</option>
+                        </select>
+                        <div className="flex bg-slate-950 rounded-lg border border-slate-800 p-0.5">
+                          <button onClick={() => setComponentsViewMode('grid')} className={`px-2.5 py-1 text-xs font-semibold rounded-md transition ${componentsViewMode === 'grid' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'}`}>Grid</button>
+                          <button onClick={() => setComponentsViewMode('table')} className={`px-2.5 py-1 text-xs font-semibold rounded-md transition ${componentsViewMode === 'table' ? 'bg-cyan-500 text-slate-950' : 'text-slate-400 hover:text-slate-200'}`}>Table</button>
+                        </div>
+                      </div>
+                      <button onClick={() => setModalType('addComponent')} className="w-full sm:w-auto bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm transition">+ Add New SKU Profile</button>
+                    </div>
+
+                    {componentsViewMode === 'grid' ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {filteredComponents.map(c => {
+                          const isLowStock = c.stock <= c.minStock;
+                          return (
+                            <div key={c.sku} className="bg-slate-900 border border-slate-800 hover:border-slate-700 transition rounded-xl overflow-hidden flex flex-col justify-between">
+                              <div className="relative h-40 bg-slate-950 flex items-center justify-center border-b border-slate-850">
+                                {c.image ? (
+                                  <img src={c.image} alt={c.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <img src={getCategoryFallbackImage(c.category)} className="w-16 h-16 opacity-75" />
+                                )}
+                                <span className="absolute top-2 right-2 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900/80 border border-slate-700 backdrop-blur-sm">{c.category}</span>
+                              </div>
+                              <div className="p-4 flex-1 flex flex-col justify-between">
+                                <div>
+                                  <span className="font-mono text-xs font-bold text-cyan-400">{c.sku}</span>
+                                  <h4 className="font-bold text-slate-100 text-sm mt-0.5 truncate" title={c.name}>{c.name}</h4>
+                                  <div className="flex justify-between text-xs text-slate-400 mt-2 font-mono">
+                                    <span>Stock Level</span>
+                                    <span className={isLowStock ? 'text-rose-400 font-bold' : 'text-emerald-400'}>{c.stock} units</span>
+                                  </div>
+                                  <div className="flex justify-between text-xs text-slate-400 mt-1 font-mono">
+                                    <span>Unit Cost</span>
+                                    <span className="text-slate-200">₹{c.unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {filteredComponents.length === 0 && (
+                          <div className="col-span-full text-center py-12 bg-slate-900 border border-slate-800 rounded-xl text-slate-500 italic">No parts matching active constraints.</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+                        <table className="w-full text-sm text-left text-slate-300">
+                          <thead className="bg-slate-950 text-xs text-slate-400 uppercase">
+                            <tr>
+                              <th className="px-6 py-3">Photo</th>
+                              <th className="px-6 py-3">SKU</th>
+                              <th className="px-6 py-3">Name</th>
+                              <th className="px-6 py-3">Category</th>
+                              <th className="px-6 py-3">Stock On Hand</th>
+                              <th className="px-6 py-3">Unit Price</th>
+                              <th className="px-6 py-3">Threshold Limit</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800">
+                            {filteredComponents.map(c => (
+                              <tr key={c.sku} className="hover:bg-slate-800/30">
+                                <td className="px-6 py-2">
+                                  <img src={c.image || getCategoryFallbackImage(c.category)} className="w-8 h-8 rounded bg-slate-950 border border-slate-800 object-cover" />
+                                </td>
+                                <td className="px-6 py-4 font-mono font-bold text-cyan-400">{c.sku}</td>
+                                <td className="px-6 py-4 font-semibold text-slate-100">{c.name}</td>
+                                <td className="px-6 py-4">{c.category}</td>
+                                <td className={`px-6 py-4 font-mono font-bold ${c.stock <= c.minStock ? 'text-rose-500' : 'text-emerald-400'}`}>{c.stock} units</td>
+                                <td className="px-6 py-4 font-mono">₹{c.unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                <td className="px-6 py-4 font-mono text-slate-400">{c.minStock}</td>
+                              </tr>
+                            ))}
+                            {filteredComponents.length === 0 && (
+                              <tr>
+                                <td colSpan="7" className="text-center py-8 text-slate-500 italic">No components on register. Register a new component SKU to get started.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* C. BATCH STOCK-IN TAB (PURCHASING) */}
+                {activeTab === 'batchIn' && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
+                    <div>
+                      <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Icons.Plus className="text-emerald-400" /> Batch Stock-In (Supplier Purchases)
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-1">First record the vendor invoice credentials, then dynamically add and increment registered material SKUs below.</p>
+                    </div>
+
+                    <form onSubmit={handleSubmitBatchStockIn} className="space-y-6">
+                      
+                      {/* Vendor Meta Header */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Vendor Supplier Name*</label>
+                          <input 
+                            type="text" 
+                            required 
+                            placeholder="e.g. Kinetic Dynamics Corp" 
+                            value={batchStockInForm.vendorName}
+                            onChange={e => setBatchStockInForm(prev => ({ ...prev, vendorName: e.target.value }))}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Supplier Address</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Plot 40, Tech Industrial Park, Bangalore" 
+                            value={batchStockInForm.vendorAddress}
+                            onChange={e => setBatchStockInForm(prev => ({ ...prev, vendorAddress: e.target.value }))}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Stock-In Date*</label>
+                          <input 
+                            type="date" 
+                            required 
+                            value={batchStockInForm.purchaseDate}
+                            onChange={e => setBatchStockInForm(prev => ({ ...prev, purchaseDate: e.target.value }))}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Dynamic Batch Items Container */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-xs uppercase font-black text-slate-400 tracking-wider">Purchase Items List</h4>
+                          <button 
+                            type="button" 
+                            onClick={addBatchStockInRow}
+                            className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                          >
+                            + Add Another SKU Row
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                          {batchStockInForm.items.map((item, index) => (
+                            <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-950/60 p-3 rounded-lg border border-slate-850/80 items-center">
+                              <div>
+                                <label className="block text-[10px] text-slate-400 font-bold mb-1">Select Component SKU*</label>
+                                <select
+                                  required
+                                  value={item.sku}
+                                  onChange={e => handleBatchStockInRowChange(index, 'sku', e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none"
+                                >
+                                  <option value="">-- Choose Component SKU --</option>
+                                  {components.map(c => (
+                                    <option key={c.sku} value={c.sku}>{c.sku} - {c.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-slate-400 font-bold mb-1">Stock Quantity to Add*</label>
+                                <input 
+                                  type="number" 
+                                  min="1" 
+                                  required 
+                                  value={item.qty}
+                                  onChange={e => handleBatchStockInRowChange(index, 'qty', e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white font-mono focus:outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-slate-400 font-bold mb-1">Unit Purchase Cost (₹)*</label>
+                                <input 
+                                  type="number" 
+                                  step="0.01" 
+                                  required 
+                                  value={item.unitPrice}
+                                  onChange={e => handleBatchStockInRowChange(index, 'unitPrice', e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white font-mono focus:outline-none"
+                                />
+                              </div>
+                              <div className="flex items-end justify-between md:justify-end pt-4 md:pt-0">
+                                <button
+                                  type="button"
+                                  disabled={batchStockInForm.items.length <= 1}
+                                  onClick={() => removeBatchStockInRow(index)}
+                                  className={`text-xs font-bold px-2 py-1 rounded ${batchStockInForm.items.length <= 1 ? 'text-slate-600 bg-slate-900 cursor-not-allowed' : 'text-rose-500 bg-rose-950/20 border border-rose-900/40 hover:bg-rose-900/45'}`}
+                                >
+                                  Delete Row
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-4 border-t border-slate-800 gap-3">
+                        <button 
+                          type="button" 
+                          onClick={() => setActiveTab('dashboard')}
+                          className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs font-bold hover:bg-slate-800"
+                        >
+                          Discard
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-lg text-xs font-bold transition shadow"
+                        >
+                          Confirm Batch Stock-In
+                        </button>
+                      </div>
+
+                    </form>
+                  </div>
+                )}
+
+                {/* D. MATERIAL ISSUE STOCK-OUT TAB */}
+                {activeTab === 'issueOut' && (
+                  <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
+                    <div>
+                      <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                        <Icons.Minus className="text-rose-400" /> Material Issue / Stock-Out Form
+                      </h2>
+                      <p className="text-xs text-slate-400 mt-1">Issue raw component batches internally for prototyping, lab experiments, or assembly benches. Generates an audited Serial Number.</p>
+                    </div>
+
+                    <form onSubmit={handleSubmitIssue} className="space-y-6">
+                      
+                      {/* Credentials Block */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Issue Serial Number</label>
+                          <input 
+                            type="text" 
+                            required 
+                            disabled 
+                            value={issueForm.serialNo}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-cyan-400 font-mono font-bold focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Person Name (Receiver)*</label>
+                          <input 
+                            type="text" 
+                            required 
+                            placeholder="e.g. Amit Kumar" 
+                            value={issueForm.personName}
+                            onChange={e => setIssueForm(prev => ({ ...prev, personName: e.target.value }))}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Purpose of Components*</label>
+                          <input 
+                            type="text" 
+                            required 
+                            placeholder="e.g. Robot manipulator R&D lab run" 
+                            value={issueForm.purpose}
+                            onChange={e => setIssueForm(prev => ({ ...prev, purpose: e.target.value }))}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Date of Issue*</label>
+                          <input 
+                            type="date" 
+                            required 
+                            value={issueForm.date}
+                            onChange={e => setIssueForm(prev => ({ ...prev, date: e.target.value }))}
+                            className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Issue Items dynamically added */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center">
+                          <h4 className="text-xs uppercase font-black text-slate-400 tracking-wider">SKU Components to Issue</h4>
+                          <button 
+                            type="button" 
+                            onClick={addIssueRow}
+                            className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                          >
+                            + Add Component Row
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                          {issueForm.items.map((item, index) => (
+                            <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-lg border border-slate-850/80 items-center">
+                              <div>
+                                <label className="block text-[10px] text-slate-400 font-bold mb-1">Select SKU to Issue*</label>
+                                <select
+                                  required
+                                  value={item.sku}
+                                  onChange={e => handleIssueRowChange(index, 'sku', e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none"
+                                >
+                                  <option value="">-- Choose SKU --</option>
+                                  {components.map(c => (
+                                    <option key={c.sku} value={c.sku}>{c.sku} - {c.name} (Stock: {c.stock} units)</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-slate-400 font-bold mb-1">Quantity to Deduct*</label>
+                                <input 
+                                  type="number" 
+                                  min="1" 
+                                  required 
+                                  value={item.qty}
+                                  onChange={e => handleIssueRowChange(index, 'qty', e.target.value)}
+                                  className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white font-mono focus:outline-none"
+                                />
+                              </div>
+                              <div className="flex items-end justify-between md:justify-end pt-4 md:pt-0">
+                                <button
+                                  type="button"
+                                  disabled={issueForm.items.length <= 1}
+                                  onClick={() => removeIssueRow(index)}
+                                  className={`text-xs font-bold px-2 py-1 rounded ${issueForm.items.length <= 1 ? 'text-slate-600 bg-slate-900 cursor-not-allowed' : 'text-rose-500 bg-rose-950/20 border border-rose-900/40 hover:bg-rose-900/45'}`}
+                                >
+                                  Delete Row
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-4 border-t border-slate-800 gap-3">
+                        <button 
+                          type="button" 
+                          onClick={() => setActiveTab('dashboard')}
+                          className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs font-bold hover:bg-slate-800"
+                        >
+                          Discard
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="px-5 py-2 bg-rose-500 hover:bg-rose-400 text-slate-950 rounded-lg text-xs font-bold transition shadow"
+                        >
+                          Issue & Deduct Stocks
+                        </button>
+                      </div>
+
+                    </form>
+                  </div>
+                )}
+
+                {/* E. MANUFACTURING (BOM & PRODUCTION RUNS) */}
+                {activeTab === 'productionAssembly' && (
+                  <div className="space-y-6">
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
+                      <div>
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                          <Icons.Robot /> Manufacturing Production Runs (BOM assembly)
+                        </h2>
+                        <p className="text-xs text-slate-400 mt-1">Submit batches of completed robot systems. This console verifies raw material BOM stocks, auto-deducts component parts, and increments finished products stock on hand.</p>
+                      </div>
+
+                      <form onSubmit={handleSubmitProductionBatch} className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Choose Robot Model*</label>
+                            <select
+                              required
+                              value={productionBatchForm.productId}
+                              onChange={e => setProductionBatchForm(prev => ({ ...prev, productId: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none"
+                            >
+                              <option value="">-- Choose Model --</option>
+                              {products.map(p => (
+                                <option key={p.id} value={p.id}>{p.id} - {p.name} ({p.stock} built on hand)</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Production Quantity*</label>
+                            <input 
+                              type="number" 
+                              min="1" 
+                              required 
+                              value={productionBatchForm.qty}
+                              onChange={e => setProductionBatchForm(prev => ({ ...prev, qty: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white font-mono focus:outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Assembly Date*</label>
+                            <input 
+                              type="date" 
+                              required 
+                              value={productionBatchForm.date}
+                              onChange={e => setProductionBatchForm(prev => ({ ...prev, date: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Station Notes / Operator Initials</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Assembled on station 4, engineering mark II" 
+                            value={productionBatchForm.notes}
+                            onChange={e => setProductionBatchForm(prev => ({ ...prev, notes: e.target.value }))}
+                            className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Production Feasibility visual panel */}
+                        {productionBatchForm.productId && (
+                          <div className="bg-slate-950 border border-slate-850 rounded-xl p-4 space-y-3">
+                            <h4 className="text-xs uppercase font-bold tracking-widest text-slate-400 border-b border-slate-900 pb-2 flex justify-between items-center">
+                              <span>BOM Stocks Feasibility Check</span>
+                              <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${activeProductionVerification.fits ? 'bg-emerald-950 text-emerald-400 border border-emerald-900' : 'bg-rose-950 text-rose-400 border border-rose-900'}`}>
+                                {activeProductionVerification.fits ? 'Pass' : 'Insufficient Stock'}
+                              </span>
+                            </h4>
+
+                            <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                              {activeProductionVerification.details.map(item => (
+                                <div key={item.sku} className="flex justify-between items-center text-xs">
+                                  <div>
+                                    <p className="font-mono text-slate-300 font-bold">{item.sku}</p>
+                                    <p className="text-[10px] text-slate-500 truncate max-w-[180px]">{item.name}</p>
+                                  </div>
+                                  <div className="text-right font-mono">
+                                    <p className="font-semibold text-slate-300">Required: <span className="font-bold text-white">{item.totalRequired}</span></p>
+                                    <p className={`text-[10px] font-semibold ${item.isSufficient ? 'text-emerald-400' : 'text-rose-500'}`}>Stock on Hand: {item.currentStock}</p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex justify-end pt-3">
+                          <button 
+                            type="submit" 
+                            disabled={!productionBatchForm.productId || !activeProductionVerification.fits}
+                            className={`px-5 py-2.5 text-xs font-bold rounded-lg shadow transition ${productionBatchForm.productId && activeProductionVerification.fits ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 cursor-pointer' : 'bg-slate-850 text-slate-500 cursor-not-allowed'}`}
+                          >
+                            Log Production Build
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+
+                    {/* Manufacture build logs history list */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                      <h3 className="font-bold text-white text-base mb-4">Historical Assembly & Build Log</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-slate-300">
+                          <thead className="text-xs text-slate-400 uppercase bg-slate-950">
+                            <tr>
+                              <th className="px-4 py-3">Date</th>
+                              <th className="px-4 py-3">Build ID</th>
+                              <th className="px-4 py-3">Product Model</th>
+                              <th className="px-4 py-3">Quantity Constructed</th>
+                              <th className="px-4 py-3">Station Notes</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800 font-medium">
+                            {buildLogs.map(log => (
+                              <tr key={log.id} className="hover:bg-slate-800/30">
+                                <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-xs">{log.date}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-xs">{log.id}</td>
+                                <td className="px-4 py-3 text-white">{log.productName}</td>
+                                <td className="px-4 py-3 text-emerald-400 font-mono font-bold">+{log.qty} completed unit(s)</td>
+                                <td className="px-4 py-3 text-slate-400 text-xs">{log.notes || '-'}</td>
+                              </tr>
+                            ))}
+                            {buildLogs.length === 0 && (
+                              <tr>
+                                <td colSpan="5" className="text-center py-6 text-slate-500 italic">No manufacturing builds logged yet.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* F. INVOICE AND SHIPPING DISPATCHES TAB */}
+                {activeTab === 'dispatches' && (
+                  <div className="space-y-6">
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
+                      <div>
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                          <Icons.Dispatches /> Dispatch Finished Goods & Generate Bill/Invoice
+                        </h2>
+                        <p className="text-xs text-slate-400 mt-1">Dispatch completed robotic inventory units to research labs, universities, or private contract clients. Instantly creates a printable invoice receipt.</p>
+                      </div>
+
+                      <form onSubmit={handleSubmitDispatch} className="space-y-6">
+                        
+                        {/* Client details */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-850">
+                          <div>
+                            <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Client Customer Name (Institution)*</label>
+                            <input 
+                              type="text" 
+                              required 
+                              placeholder="e.g. Apex Logistics Labs" 
+                              value={dispatchForm.customerName}
+                              onChange={e => setDispatchForm(prev => ({ ...prev, customerName: e.target.value }))}
+                              className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Contact Person Name*</label>
+                            <input 
+                              type="text" 
+                              required 
+                              placeholder="e.g. Sarah Jenkins" 
+                              value={dispatchForm.personName}
+                              onChange={e => setDispatchForm(prev => ({ ...prev, personName: e.target.value }))}
+                              className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] uppercase font-bold text-slate-400 mb-1.5">Dispatch Delivery Date*</label>
+                            <input 
+                              type="date" 
+                              required 
+                              value={dispatchForm.date}
+                              onChange={e => setDispatchForm(prev => ({ ...prev, date: e.target.value }))}
+                              className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Dispatch rows container */}
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center">
+                            <h4 className="text-xs uppercase font-black text-slate-400 tracking-wider">Completed Robots to Dispatch</h4>
+                            <button 
+                              type="button" 
+                              onClick={addDispatchRow}
+                              className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                            >
+                              + Add Robot Row
+                            </button>
+                          </div>
+
+                          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
+                            {dispatchForm.items.map((item, index) => (
+                              <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-lg border border-slate-850/80 items-center">
+                                <div>
+                                  <label className="block text-[10px] text-slate-400 font-bold mb-1">Select Completed Robot Model*</label>
+                                  <select
+                                    required
+                                    value={item.productId}
+                                    onChange={e => handleDispatchRowChange(index, 'productId', e.target.value)}
+                                    className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white focus:outline-none"
+                                  >
+                                    <option value="">-- Choose Model --</option>
+                                    {products.map(p => (
+                                      <option key={p.id} value={p.id}>{p.id} - {p.name} (Stock Available: {p.stock} units)</option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] text-slate-400 font-bold mb-1">Quantity to Ship*</label>
+                                  <input 
+                                    type="number" 
+                                    min="1" 
+                                    required 
+                                    value={item.qty}
+                                    onChange={e => handleDispatchRowChange(index, 'qty', e.target.value)}
+                                    className="w-full bg-slate-900 border border-slate-800 rounded p-1.5 text-xs text-white font-mono focus:outline-none"
+                                  />
+                                </div>
+                                <div className="flex items-end justify-between md:justify-end pt-4 md:pt-0">
+                                  <button
+                                    type="button"
+                                    disabled={dispatchForm.items.length <= 1}
+                                    onClick={() => removeDispatchRow(index)}
+                                    className={`text-xs font-bold px-2 py-1 rounded ${dispatchForm.items.length <= 1 ? 'text-slate-600 bg-slate-900 cursor-not-allowed' : 'text-rose-500 bg-rose-950/20 border border-rose-900/40 hover:bg-rose-900/45'}`}
+                                  >
+                                    Delete Row
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cargo Carrier / Dispatch Reference Notes</label>
+                          <textarea 
+                            placeholder="Add reference codes, courier tracking numbers, gate passes..." 
+                            rows="2"
+                            value={dispatchForm.notes}
+                            onChange={e => setDispatchForm(prev => ({ ...prev, notes: e.target.value }))}
+                            className="w-full bg-slate-950 border border-slate-800 rounded p-3 text-xs text-white focus:outline-none"
+                          ></textarea>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t border-slate-800 gap-3">
+                          <button 
+                            type="button" 
+                            onClick={() => setActiveTab('dashboard')}
+                            className="px-4 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs font-bold hover:bg-slate-800"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit" 
+                            className="px-5 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 rounded-lg text-xs font-bold transition shadow"
+                          >
+                            Process Dispatch & Generate Bill
+                          </button>
+                        </div>
+
+                      </form>
+                    </div>
+
+                    {/* Historical Dispatch logs table */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                      <h3 className="font-bold text-white text-base mb-4">Historical Dispatches</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-slate-300">
+                          <thead className="text-xs text-slate-400 uppercase bg-slate-950">
+                            <tr>
+                              <th className="px-4 py-3">Date</th>
+                              <th className="px-4 py-3">Invoice No</th>
+                              <th className="px-4 py-3">Customer Client</th>
+                              <th className="px-4 py-3">Representative</th>
+                              <th className="px-4 py-3">Dispatched items list</th>
+                              <th className="px-4 py-3">Total Invoice Sum</th>
+                              <th className="px-4 py-3">Invoice Bill</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800 font-medium">
+                            {dispatchLogs.map(log => (
+                              <tr key={log.id} className="hover:bg-slate-800/30">
+                                <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-xs">{log.date}</td>
+                                <td className="px-4 py-3 text-cyan-400 font-mono text-xs">{log.invoiceNo}</td>
+                                <td className="px-4 py-3 text-white">{log.customerName}</td>
+                                <td className="px-4 py-3 text-slate-400 text-xs">{log.contactPerson}</td>
+                                <td className="px-4 py-3 text-slate-300 text-xs">
+                                  {log.items.map(i => `${i.productName} (x${i.qty})`).join(', ')}
+                                </td>
+                                <td className="px-4 py-3 text-slate-200 font-mono font-bold">₹{log.totalAmount.toLocaleString('en-IN')}</td>
+                                <td className="px-4 py-3">
+                                  <button
+                                    onClick={() => setActiveInvoice(log)}
+                                    className="px-2.5 py-1 text-[11px] font-bold bg-slate-950 hover:bg-slate-800 rounded border border-slate-850 text-cyan-400 transition"
+                                  >
+                                    View Bill
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                            {dispatchLogs.length === 0 && (
+                              <tr>
+                                <td colSpan="7" className="text-center py-6 text-slate-500 italic">No dispatches executed.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* G. PRODUCTS SCHEMA VIEW TAB */}
+                {activeTab === 'products' && (
+                  <div className="space-y-6">
+                    <div className="flex justify-between bg-slate-900 p-4 border border-slate-800 rounded-xl items-center">
+                      <div>
+                        <h3 className="font-bold">Robotics Product Catalogs & BOMs</h3>
+                        <p className="text-xs text-slate-400 mt-1">Configure completed robot builds and define standard raw material templates.</p>
+                      </div>
+                      <button onClick={() => setModalType('createProduct')} className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-lg text-sm">+ Define New Model</button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {products.map(p => (
+                        <div key={p.id} className="bg-slate-900 border border-slate-800 rounded-xl p-6 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between mb-2 items-center">
+                              <span className="font-mono text-cyan-400 font-bold bg-slate-950 px-2 py-0.5 rounded border border-slate-800">{p.id}</span>
+                              <span className="font-bold text-emerald-400">{p.stock} units built on hand</span>
+                            </div>
+                            <div className="relative h-48 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 mb-4 flex items-center justify-center">
+                              {p.image ? (
+                                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <Icons.Robot />
+                              )}
+                            </div>
+                            <h4 className="font-bold text-lg text-slate-100">{p.name}</h4>
+                            <p className="text-xs text-slate-400 mt-1 mb-4">{p.description}</p>
+                            
+                            <div className="bg-slate-950/80 rounded-lg p-3 border border-slate-850">
+                              <p className="text-xs font-bold text-slate-400 uppercase mb-2">Bill of Materials (BOM)</p>
+                              {p.bom.map(b => (
+                                <div key={b.sku} className="flex justify-between text-xs py-1 border-b border-slate-900/60 last:border-0">
+                                  <span className="font-mono text-slate-300">{b.sku} ({components.find(c => c.sku === b.sku)?.name || 'Unknown'})</span>
+                                  <span className="font-mono font-bold text-slate-400">qty: {b.qty}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 mt-4 pt-4 border-t border-slate-800">
+                            <button onClick={() => { setProductionBatchForm(prev => ({ ...prev, productId: p.id })); setActiveTab('productionAssembly'); }} className="flex-1 bg-slate-950 hover:bg-slate-800 border border-slate-800 py-1.5 rounded text-xs text-emerald-400 font-bold transition">⚡ Manufacture Build</button>
+                            <button onClick={() => { setDispatchForm(prev => ({ ...prev, items: [{ productId: p.id, qty: 1 }] })); setActiveTab('dispatches'); }} className="bg-slate-950 hover:bg-slate-800 border border-slate-800 px-3 py-1.5 rounded text-xs text-sky-400 font-bold transition">📦 Dispatch</button>
+                          </div>
+                        </div>
+                      ))}
+                      {products.length === 0 && (
+                        <div className="col-span-full text-center py-12 bg-slate-900 rounded border border-slate-800 text-slate-500 italic">No robotic models configured yet. Create one above!</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* G. HISTORY AUDIT LOGS */}
+                {activeTab === 'history' && (
+                  <div className="space-y-6">
+                    
+                    {/* Material Issue Stock-out logs console with Serial Number tracking */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                      <h3 className="font-bold text-white text-base mb-4">Material Issue Logs (Internal Stock-Outs)</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-slate-300">
+                          <thead className="text-xs text-slate-400 uppercase bg-slate-950">
+                            <tr>
+                              <th className="px-4 py-3">Issue Date</th>
+                              <th className="px-4 py-3">Issue Serial Number</th>
+                              <th className="px-4 py-3">Recipient Employee</th>
+                              <th className="px-4 py-3">Purpose / Destination</th>
+                              <th className="px-4 py-3">Items Issued</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800 font-medium">
+                            {issueLogs.map((log, index) => (
+                              <tr key={index} className="hover:bg-slate-800/30">
+                                <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-xs">{log.date}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-rose-400 font-mono font-bold text-xs">{log.serialNo}</td>
+                                <td className="px-4 py-3 text-white">{log.personName}</td>
+                                <td className="px-4 py-3 text-slate-300 text-xs">{log.purpose}</td>
+                                <td className="px-4 py-3 text-slate-400 text-xs">
+                                  {log.items.map(i => `${i.sku} (x${i.qty})`).join(', ')}
+                                </td>
+                              </tr>
+                            ))}
+                            {issueLogs.length === 0 && (
+                              <tr>
+                                <td colSpan="5" className="text-center py-6 text-slate-500 italic">No raw material issues recorded.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* Batch stock purchase inflows */}
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                      <h3 className="font-bold text-white text-base mb-4">Supplier Purchases Logs (Batch Inflows)</h3>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-slate-300">
+                          <thead className="text-xs text-slate-400 uppercase bg-slate-950">
+                            <tr>
+                              <th className="px-4 py-3">Date</th>
+                              <th className="px-4 py-3">Batch Transaction ID</th>
+                              <th className="px-4 py-3">Vendor supplier</th>
+                              <th className="px-4 py-3">Supplier Address</th>
+                              <th className="px-4 py-3">Purchased Items Details</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-800 font-medium">
+                            {purchases.map(log => (
+                              <tr key={log.id} className="hover:bg-slate-800/30">
+                                <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-xs">{log.date}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-slate-400 font-mono text-xs">{log.id}</td>
+                                <td className="px-4 py-3 text-white font-bold">{log.vendorName}</td>
+                                <td className="px-4 py-3 text-slate-400 text-xs">{log.vendorAddress}</td>
+                                <td className="px-4 py-3 text-slate-300 text-xs">
+                                  {log.items.map(i => `${i.sku} (x${i.qty} @ ₹${i.unitPrice.toLocaleString('en-IN')})`).join(', ')}
+                                </td>
+                              </tr>
+                            ))}
+                            {purchases.length === 0 && (
+                              <tr>
+                                <td colSpan="5" className="text-center py-6 text-slate-500 italic">No purchase batches loaded.</td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                  </div>
+                )}
+
+              </main>
+
+              {/* FOOTER */}
+              <footer className="no-print mt-12 bg-slate-900 border-t border-slate-800/80 px-6 py-4 text-center text-xs text-slate-500">
+                <p>&copy; 2026 RoboSmart Technologies Inc. &middot; Professional Robotics Production & Asset Control Center.</p>
+              </footer>
+
+              {/* --- MODALS OVERLAY --- */}
+              {modalType && (
+                <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto no-print">
+                  
+                  {/* I. REGISTER NEW RAW SKU COMPONENT */}
+                  {modalType === 'addComponent' && (
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md shadow-2xl p-6 relative">
+                      <h3 className="text-base font-bold text-white border-b border-slate-800 pb-3 mb-4 flex items-center gap-2">
+                        <Icons.Components /> Register New Component SKU Profile
+                      </h3>
+                      <form onSubmit={handleRegisterComponent} className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-400 uppercase mb-1">SKU Code (Unique ID)*</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. SW-007" 
+                            required
+                            value={newComponentForm.sku}
+                            onChange={(e) => setNewComponentForm(prev => ({ ...prev, sku: e.target.value }))}
+                            className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white placeholder-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Component Part Name*</label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Ultrasonic Sensor Core" 
+                            required
+                            value={newComponentForm.name}
+                            onChange={(e) => setNewComponentForm(prev => ({ ...prev, name: e.target.value }))}
+                            className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white placeholder-slate-700 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Category</label>
+                            <select
+                              value={newComponentForm.category}
+                              onChange={(e) => setNewComponentForm(prev => ({ ...prev, category: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white focus:outline-none"
+                            >
+                              <option value="Power">Power</option>
+                              <option value="Actuators">Actuators</option>
+                              <option value="Controllers">Controllers</option>
+                              <option value="Sensors">Sensors</option>
+                              <option value="Mechanics">Mechanics</option>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Initial Stock Deposit</label>
+                            <input 
+                              type="number" 
+                              min="0"
+                              value={newComponentForm.initialStock}
+                              onChange={(e) => setNewComponentForm(prev => ({ ...prev, initialStock: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white font-mono focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Estimated Unit Price (₹)</label>
+                            <input 
+                              type="number" 
+                              min="0"
+                              step="0.01"
+                              value={newComponentForm.unitPrice}
+                              onChange={(e) => setNewComponentForm(prev => ({ ...prev, unitPrice: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white font-mono focus:outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Min Threshold Alert Limit</label>
+                            <input 
+                              type="number" 
+                              min="1"
+                              value={newComponentForm.minStock}
+                              onChange={(e) => setNewComponentForm(prev => ({ ...prev, minStock: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white font-mono focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Photo base64 capture */}
+                        <div className="border border-dashed border-slate-800 p-3.5 rounded-lg bg-slate-950/60">
+                          <label className="block mb-1.5 text-xs font-bold text-slate-400 uppercase">Upload Component Photo (Offline Friendly)</label>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(e) => handleFileRead(e, (base64) => setNewComponentForm(prev => ({ ...prev, image: base64 })))} 
+                            className="w-full text-slate-400 file:mr-3 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-slate-850 file:text-cyan-400 hover:file:bg-slate-800 cursor-pointer" 
+                          />
+                          {newComponentForm.image && <img src={newComponentForm.image} className="w-16 h-16 rounded object-cover mt-2.5 border border-slate-800" />}
+                        </div>
+
+                        <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-800">
+                          <button 
+                            type="button" 
+                            onClick={() => setModalType(null)}
+                            className="px-4 py-2 text-sm font-semibold bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 rounded-lg transition"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit" 
+                            className="px-4 py-2 text-sm font-bold bg-cyan-500 hover:bg-cyan-400 text-slate-950 rounded-lg shadow transition"
+                          >
+                            Save SKU Profile
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {/* II. REGISTER NEW ROBOT SCHEMA TEMPLATE & BOM ASSEMBLY */}
+                  {modalType === 'createProduct' && (
+                    <div className="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-lg shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+                      <h3 className="text-base font-bold text-white border-b border-slate-800 pb-3 mb-4 flex items-center gap-2">
+                        <Icons.Robot /> Define New Robotics System & BOM Schema
+                      </h3>
+                      <form onSubmit={handleRegisterProduct} className="space-y-4">
+                        <div className="grid grid-cols-3 gap-3">
+                          <div className="col-span-1">
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Model ID Code*</label>
+                            <input 
+                              type="text" 
+                              placeholder="PROD-03" 
+                              required
+                              value={newProductForm.id}
+                              onChange={(e) => setNewProductForm(prev => ({ ...prev, id: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white font-mono placeholder-slate-700 focus:outline-none"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Robotics System Name*</label>
+                            <input 
+                              type="text" 
+                              placeholder="e.g. Autonomous Robotic Manipulator" 
+                              required
+                              value={newProductForm.name}
+                              onChange={(e) => setNewProductForm(prev => ({ ...prev, name: e.target.value }))}
+                              className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white placeholder-slate-700 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Model Description</label>
+                          <input 
+                            type="text" 
+                            placeholder="Brief description of application specs..." 
+                            value={newProductForm.description}
+                            onChange={(e) => setNewProductForm(prev => ({ ...prev, description: e.target.value }))}
+                            className="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white placeholder-slate-700 focus:outline-none"
+                          />
+                        </div>
+
+                        {/* Image Upload Input */}
+                        <div className="border border-dashed border-slate-800 p-3 rounded bg-slate-950/60">
+                          <label className="block mb-1.5 text-xs font-bold text-slate-400 uppercase">Upload Robot Photo (Offline Friendly)</label>
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(e) => handleFileRead(e, (base64) => setNewProductForm(prev => ({ ...prev, image: base64 })))} 
+                            className="w-full text-slate-400 file:mr-3 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-slate-850 file:text-cyan-400 hover:file:bg-slate-800 cursor-pointer" 
+                          />
+                          {newProductForm.image && <img src={newProductForm.image} className="w-full h-24 rounded object-cover mt-2.5 border border-slate-800" />}
+                        </div>
+
+                        {/* BOM Row Generator area */}
+                        <div className="border border-slate-800/80 bg-slate-950/60 p-4 rounded-xl space-y-3">
+                          <h4 className="text-xs uppercase font-bold tracking-widest text-slate-300">Assemble Bill of Materials (BOM)</h4>
+                          
+                          <div className="grid grid-cols-5 gap-2 items-end">
+                            <div className="col-span-3">
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Target SKU component</label>
+                              <select
+                                value={bomRowInput.sku}
+                                onChange={(e) => setBomRowInput(prev => ({ ...prev, sku: e.target.value }))}
+                                className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none"
+                              >
+                                <option value="">-- Choose Part SKU --</option>
+                                {components.map(c => (
+                                  <option key={c.sku} value={c.sku}>{c.sku} &middot; {c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="col-span-1">
+                              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Qty Req.</label>
+                              <input 
+                                type="number" 
+                                min="1" 
+                                value={bomRowInput.qty}
+                                onChange={(e) => setBomRowInput(prev => ({ ...prev, qty: e.target.value }))}
+                                className="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white font-mono focus:outline-none text-center"
+                              />
+                            </div>
+                            <div className="col-span-1">
+                              <button 
+                                type="button"
+                                onClick={addBomRowItem}
+                                className="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold py-2 rounded transition"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* list of BOM components defined */}
+                          <div className="mt-3 space-y-1.5 max-h-[120px] overflow-y-auto">
+                            {newProductForm.bomList.map(item => {
+                              const part = components.find(c => c.sku === item.sku);
+                              return (
+                                <div key={item.sku} className="bg-slate-900 px-3 py-1.5 rounded flex justify-between items-center text-xs border border-slate-800">
+                                  <span className="font-mono text-slate-300 font-semibold">{item.sku} &middot; <span className="text-slate-400 font-normal">{part ? part.name : 'Unknown Part'}</span></span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono font-bold text-cyan-400">qty: {item.qty}</span>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => removeBomRowItem(item.sku)}
+                                      className="text-rose-500 hover:text-rose-400 font-bold px-1"
+                                    >
+                                      &times;
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {newProductForm.bomList.length === 0 && (
+                              <p className="text-[11px] text-slate-500 italic text-center py-4">No materials added to BOM template yet. Add components above.</p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-800">
+                          <button 
+                            type="button" 
+                            onClick={() => setModalType(null)}
+                            className="px-4 py-2 bg-slate-950 border border-slate-800 rounded text-slate-300 text-xs font-bold"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit" 
+                            className="px-4 py-2 bg-emerald-500 text-slate-950 font-bold rounded text-xs"
+                          >
+                            Save Robotics Schema
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                </div>
+              )}
+
+              {/* --- II. PROFESSIONAL INVOICE PRINT-PREVIEW DIALOG POPUP --- */}
+              {activeInvoice && (
+                <div className="fixed inset-0 z-50 bg-slate-950/90 flex items-center justify-center p-4 overflow-y-auto">
+                  <div className="bg-white text-slate-900 w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-between p-6 md:p-8 no-print">
+                    
+                    {/* Invoice design content */}
+                    <div id="print-area" className="bg-white text-slate-900 space-y-6">
+                      
+                      {/* Top Header layout */}
+                      <div className="flex justify-between items-start border-b border-slate-200 pb-5">
+                        <div>
+                          <h2 className="text-xl font-black tracking-wider text-slate-950">ROBOSMART TECHNOLOGIES INC.</h2>
+                          <p className="text-xs text-slate-500 font-medium mt-1">Robotics assembly plant & warehouses center</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Hyderabad, Telangana, India</p>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-xs uppercase font-extrabold tracking-widest text-slate-400 block">Dispatch Receipt Bill</span>
+                          <span className="text-sm font-mono font-bold text-slate-950 mt-1 block">{activeInvoice.invoiceNo}</span>
+                          <span className="text-xs text-slate-500 block mt-0.5">Date: {activeInvoice.date}</span>
+                        </div>
+                      </div>
+
+                      {/* Recipient Credentials information */}
+                      <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                          <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Deliver to (Client):</span>
+                          <h4 className="text-sm font-bold text-slate-950 mt-1">{activeInvoice.customerName}</h4>
+                          <p className="text-xs text-slate-500 mt-0.5">Contact Person: {activeInvoice.contactPerson}</p>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">Auditing Details:</span>
+                          <p className="text-xs text-slate-600 mt-1">Authorized Dispatch Officer: Warehouse Head</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">Log notes: {activeInvoice.notes}</p>
+                        </div>
+                      </div>
+
+                      {/* Dispatched units product price table */}
+                      <div className="border border-slate-200 rounded-xl overflow-hidden">
+                        <table className="w-full text-xs text-left">
+                          <thead className="bg-slate-100 text-slate-700 uppercase text-[10px] font-bold">
+                            <tr>
+                              <th className="px-4 py-2.5">Robot Model ID</th>
+                              <th className="px-4 py-2.5">Product Name</th>
+                              <th className="px-4 py-2.5 text-center">Qty Sent</th>
+                              <th className="px-4 py-2.5 text-right">Unit Rate (₹)</th>
+                              <th className="px-4 py-2.5 text-right">Subtotal Price</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-semibold text-slate-800">
+                            {activeInvoice.items.map((item, idx) => (
+                              <tr key={idx}>
+                                <td className="px-4 py-3 font-mono text-slate-900">{item.productId}</td>
+                                <td className="px-4 py-3 text-slate-950 font-bold">{item.productName}</td>
+                                <td className="px-4 py-3 text-center">{item.qty} unit(s)</td>
+                                <td className="px-4 py-3 text-right font-mono">₹{item.unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                                <td className="px-4 py-3 text-right font-mono text-slate-950">₹{item.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Cumulative pricing aggregate totals */}
+                      <div className="flex justify-end pt-2">
+                        <div className="w-64 space-y-2 text-right">
+                          <div className="flex justify-between text-xs text-slate-500">
+                            <span>SGST (9%)</span>
+                            <span className="font-mono">₹{(activeInvoice.totalAmount * 0.09).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="flex justify-between text-xs text-slate-500">
+                            <span>CGST (9%)</span>
+                            <span className="font-mono">₹{(activeInvoice.totalAmount * 0.09).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-bold text-slate-950 border-t border-slate-200 pt-2">
+                            <span>Gross Total Amount</span>
+                            <span className="font-mono">₹{(activeInvoice.totalAmount * 1.18).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Operational control drawer */}
+                    <div className="flex justify-end gap-3 mt-8 pt-4 border-t border-slate-100 no-print">
+                      <button 
+                        onClick={() => setActiveInvoice(null)}
+                        className="px-4 py-2 rounded-lg text-xs font-bold text-slate-500 hover:text-slate-700 bg-slate-100 transition"
+                      >
+                        Close Bill
+                      </button>
+                      <button 
+                        onClick={handlePrintInvoice}
+                        className="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-lg text-xs font-bold transition shadow"
+                      >
+                        Print / Download Invoice Receipt
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* --- REAL PRINT LAYOUT HIDDEN CONTAINER --- */}
+              {activeInvoice && (
+                <div className="hidden print-only bg-white text-black p-10 font-sans space-y-8">
+                  <div className="flex justify-between items-start border-b-2 border-black pb-5">
+                    <div>
+                      <h2 className="text-2xl font-black tracking-wider text-black">ROBOSMART TECHNOLOGIES INC.</h2>
+                      <p className="text-sm font-medium mt-1">Robotics assembly plant & warehouses center</p>
+                      <p className="text-xs mt-0.5">Hyderabad, Telangana, India</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs uppercase font-extrabold tracking-widest text-slate-400 block">Dispatch Receipt Bill</span>
+                      <span className="text-base font-mono font-bold mt-1 block">{activeInvoice.invoiceNo}</span>
+                      <span className="text-sm block mt-0.5">Date: {activeInvoice.date}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 bg-gray-100 p-4 rounded-xl border border-gray-300">
+                    <div>
+                      <span className="text-xs uppercase font-black tracking-wider text-gray-500 block">Deliver to (Client):</span>
+                      <h4 className="text-base font-bold mt-1">{activeInvoice.customerName}</h4>
+                      <p className="text-sm mt-0.5">Contact Person: {activeInvoice.contactPerson}</p>
+                    </div>
+                    <div>
+                      <span className="text-xs uppercase font-black tracking-wider text-gray-500 block">Auditing Details:</span>
+                      <p className="text-sm mt-1">Authorized Dispatch Officer: Warehouse Head</p>
+                      <p className="text-xs mt-0.5">Log notes: {activeInvoice.notes}</p>
+                    </div>
+                  </div>
+
+                  <div className="border border-gray-300 rounded-xl overflow-hidden">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-gray-100 text-gray-700 uppercase font-bold text-xs">
+                        <tr>
+                          <th className="px-4 py-2.5">Robot Model ID</th>
+                          <th className="px-4 py-2.5">Product Name</th>
+                          <th className="px-4 py-2.5 text-center">Qty Sent</th>
+                          <th className="px-4 py-2.5 text-right">Unit Rate (₹)</th>
+                          <th className="px-4 py-2.5 text-right">Subtotal Price</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-300 font-semibold text-black">
+                        {activeInvoice.items.map((item, idx) => (
+                          <tr key={idx}>
+                            <td className="px-4 py-3 font-mono">{item.productId}</td>
+                            <td className="px-4 py-3 font-bold">{item.productName}</td>
+                            <td className="px-4 py-3 text-center">{item.qty} unit(s)</td>
+                            <td className="px-4 py-3 text-right font-mono">₹{item.unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                            <td className="px-4 py-3 text-right font-mono">₹{item.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <div className="flex justify-end pt-2">
+                    <div className="w-64 space-y-2 text-right text-sm">
+                      <div className="flex justify-between">
+                        <span>SGST (9%)</span>
+                        <span className="font-mono">₹{(activeInvoice.totalAmount * 0.09).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>CGST (9%)</span>
+                        <span className="font-mono">₹{(activeInvoice.totalAmount * 0.09).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                      <div className="flex justify-between font-bold border-t border-black pt-2 text-base">
+                        <span>Gross Total Amount</span>
+                        <span className="font-mono">₹{(activeInvoice.totalAmount * 1.18).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
